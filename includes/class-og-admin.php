@@ -25,15 +25,15 @@ class WP_OG_Takumi_Admin {
     }
 
     public static function registerSettings(): void {
+        // No wp_kses_post — it strips the tw attribute which is essential
+        // for Takumi rendering. Only admins (manage_options) can save these.
         register_setting('wp_og_takumi_settings', 'wp_og_takumi_default_template', [
-            'type'              => 'string',
-            'sanitize_callback' => 'wp_kses_post',
+            'type' => 'string',
         ]);
 
         foreach (self::$supported_post_types as $type) {
             register_setting('wp_og_takumi_settings', "wp_og_takumi_template_{$type}", [
-                'type'              => 'string',
-                'sanitize_callback' => 'wp_kses_post',
+                'type' => 'string',
             ]);
         }
     }
@@ -174,7 +174,8 @@ class WP_OG_Takumi_Admin {
         }
 
         if (!empty($_POST['wp_og_takumi_use_custom']) && !empty($_POST['wp_og_takumi_post_template'])) {
-            update_post_meta($post_id, '_og_template', wp_kses_post($_POST['wp_og_takumi_post_template']));
+            // Don't use wp_kses_post — it strips the tw attribute
+            update_post_meta($post_id, '_og_template', $_POST['wp_og_takumi_post_template']);
         } else {
             delete_post_meta($post_id, '_og_template');
         }

@@ -31,7 +31,8 @@ class WP_OG_Takumi_Endpoint {
                 'template' => [
                     'required'          => true,
                     'type'              => 'string',
-                    'sanitize_callback' => 'wp_kses_post',
+                    // No wp_kses_post — it strips tw attributes. This endpoint
+                    // requires manage_options so only admins can call it.
                 ],
                 'post_id' => [
                     'type'              => 'integer',

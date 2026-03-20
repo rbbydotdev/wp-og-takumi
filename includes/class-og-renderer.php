@@ -104,7 +104,10 @@ class WP_OG_Takumi_Renderer {
         $json = json_encode($nodeTree, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE);
         $imageBytes = $this->render($json);
 
-        file_put_contents($cache_path, $imageBytes);
+        $written = file_put_contents($cache_path, $imageBytes);
+        if ($written === false) {
+            throw new \RuntimeException("Failed to write OG image cache to {$cache_path} — check directory permissions");
+        }
 
         return $cache_path;
     }

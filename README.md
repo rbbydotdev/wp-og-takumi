@@ -177,16 +177,82 @@ Without this, the plugin still works -- you just edit templates as raw HTML in t
 
 **Settings > OG Images** -- tabbed interface with a CodeMirror 6 editor per post type:
 
+- **Heading Font / Body Font** dropdowns -- 20 Google Fonts to choose from, or "Use theme font" to inherit from the WordPress Customizer
 - **Format** button -- prettifies the template HTML
 - **Reset to Default** -- restores the file-based template
-- **Insert Image** -- opens WordPress media library
+- **Insert Image** -- opens WordPress media library, inserts `<img>` at cursor
 - **Preview** -- renders the template to a real PNG and displays it inline
 
 **Per-post meta box** (on any post/page edit screen):
 
-- Check "Use custom OG template" to override the default for this specific post
+- Check "Use custom OG template" -- editor prefills with the default template for that post type
 - Same editor + toolbar
-- Preview uses the actual post's data (title, excerpt, etc.)
+- Preview uses the actual post's data (title, excerpt, featured image, etc.)
+
+## Fonts
+
+Fonts are configurable from the admin -- no code changes needed.
+
+**Settings > OG Images** has two dropdowns at the top of the page:
+
+| Setting | Default | What it controls |
+|---|---|---|
+| **Heading Font** | Use theme font | `<h1>` through `<h6>` elements |
+| **Body Font** | Use theme font | `<span>`, `<p>`, and all other text |
+
+20 Google Fonts are available: Playfair Display, Lora, Merriweather, Source Sans 3, Inter, Poppins, Montserrat, etc.
+
+**"Use theme font"** pulls from your WordPress Customizer settings (`get_theme_mod`). If you change fonts in the Customizer, OG images pick them up automatically.
+
+When you select a font, the plugin:
+1. Auto-downloads the TTF files from Google Fonts (cached in `fonts/`)
+2. Injects `font-['Family_Name']` into the Tailwind classes of text elements
+3. Clears all cached OG images so they re-render with the new font
+
+You can also use custom fonts by dropping `.ttf` files into `fonts/` and referencing them in your template with `font-['Your_Font']` in the `tw` attribute.
+
+## Images
+
+Templates can embed images using `<img>` tags. The plugin resolves image sources automatically:
+
+```html
+<!-- WordPress upload URL -- auto-resolved to local file path -->
+<img src="http://yoursite.com/wp-content/uploads/2024/photo.jpg" tw="w-[400px] h-[300px]" />
+
+<!-- Featured image variable -- resolved from post thumbnail -->
+<img src="{{featured_image}}" tw="absolute inset-0 w-full h-full object-cover" />
+```
+
+The Rust FFI reads local files and converts them to base64 data URIs for Takumi. WordPress upload URLs are automatically mapped to filesystem paths.
+
+**Background image pattern** (used by the tour template):
+
+```html
+<div tw="w-[1200px] h-[630px] flex relative">
+  <img src="{{featured_image}}" tw="absolute inset-0 w-full h-full object-cover" />
+  <div tw="absolute inset-0 bg-black/50"></div>
+  <div tw="relative flex flex-col p-16 text-white">
+    <h1 tw="text-5xl font-bold">{{title}}</h1>
+  </div>
+</div>
+```
+
+This layers: full-bleed background photo, dark semi-transparent overlay, then text content on top.
+
+## Cache
+
+OG images are cached as PNG files in `wp-content/uploads/og-images/{post_id}.png`.
+
+Cache is automatically invalidated when:
+
+| Event | What's cleared |
+|---|---|
+| Post saved (title, content, meta) | That post's cached PNG |
+| OG template settings changed | All cached PNGs |
+| Font settings changed | All cached PNGs |
+| Theme fonts changed (Customizer) | All cached PNGs |
+
+The next request to `/wp-json/wp-og-takumi/v1/og-image/{id}` after invalidation re-renders with fresh data.
 
 ## Adapting for your site
 
@@ -206,16 +272,6 @@ Then use `{{price}}` and `{{sku}}` in your templates.
 ### Custom templates
 
 Add a file at `templates/{post_type}.html` for any post type. The plugin picks it up automatically via the cascade.
-
-### Custom fonts
-
-Drop `.ttf` files into `fonts/`. The Rust renderer loads everything in that directory. Use the font family name in your templates:
-
-```html
-<h1 tw="text-6xl font-bold" style="font-family: 'My Custom Font'">{{title}}</h1>
-```
-
-Or if your theme uses the WordPress Customizer for font selection (via `get_theme_mod('og_takumi_font_heading')`), the plugin reads those settings automatically and downloads the Google Fonts TTFs on demand.
 
 ## Testing
 

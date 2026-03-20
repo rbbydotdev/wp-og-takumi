@@ -190,6 +190,7 @@ class WP_OG_Takumi_Template_Engine {
         if (!$hasChildElements && trim($textContent) !== '' && in_array($tag, ['h1','h2','h3','h4','h5','h6','span','p','a','strong','em','label'], true)) {
             $result = ['type' => 'text', 'content' => $textContent];
             $tw = $node->getAttribute('tw');
+            $tw = $this->injectFontFamily($tw, $tag);
             if ($tw !== '') {
                 $result['tw'] = $this->resolveTwUrls($tw);
             }
@@ -226,17 +227,53 @@ class WP_OG_Takumi_Template_Engine {
     }
 
     /**
-     * Get the current theme fonts from the Customizer (or defaults).
+     * Get the fonts to use for OG images.
+     * Reads OG-specific settings first, falls back to theme Customizer fonts.
      */
-    public function getThemeFonts(): array {
-        $heading = function_exists('get_theme_mod')
-            ? get_theme_mod('og_takumi_font_heading', 'Playfair Display')
-            : 'Playfair Display';
-        $body = function_exists('get_theme_mod')
-            ? get_theme_mod('og_takumi_font_body', 'Source Sans 3')
-            : 'Source Sans 3';
+    public function getOgFonts(): array {
+        // OG-specific overrides
+        $heading = function_exists('get_option') ? get_option('wp_og_takumi_font_heading', '') : '';
+        $body = function_exists('get_option') ? get_option('wp_og_takumi_font_body', '') : '';
+
+        // Fall back to theme Customizer fonts
+        if (empty($heading)) {
+            $heading = function_exists('get_theme_mod')
+                ? get_theme_mod('hannies_font_heading', 'Playfair Display')
+                : 'Playfair Display';
+        }
+        if (empty($body)) {
+            $body = function_exists('get_theme_mod')
+                ? get_theme_mod('hannies_font_body', 'Source Sans 3')
+                : 'Source Sans 3';
+        }
 
         return ['heading' => $heading, 'body' => $body];
+    }
+
+    /** @deprecated Use getOgFonts() instead */
+    public function getThemeFonts(): array {
+        return $this->getOgFonts();
+    }
+
+    /**
+     * Inject the appropriate font-family tw class into a text element's tw string.
+     * Headings (h1-h6) get the heading font, everything else gets the body font.
+     * Only injects if no font-[...] class is already present.
+     */
+    private function injectFontFamily(string $tw, string $tag): string {
+        // Don't inject if user already specified a font class
+        if (str_contains($tw, 'font-[')) {
+            return $tw;
+        }
+
+        $fonts = $this->getOgFonts();
+        $isHeading = in_array($tag, ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'], true);
+        $family = $isHeading ? $fonts['heading'] : $fonts['body'];
+
+        // Tailwind arbitrary font syntax: font-['Family_Name'] (underscores for spaces)
+        $twFamily = "font-['" . str_replace(' ', '_', $family) . "']";
+
+        return trim($tw . ' ' . $twFamily);
     }
 
     /**

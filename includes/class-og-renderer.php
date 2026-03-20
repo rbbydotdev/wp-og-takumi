@@ -141,7 +141,7 @@ class WP_OG_Takumi_Renderer {
      * Ensure the current theme fonts are downloaded as TTF files.
      */
     private function ensureThemeFonts(): void {
-        $fonts = $this->engine->getThemeFonts();
+        $fonts = $this->engine->getOgFonts();
         $fontsDir = WP_OG_TAKUMI_PATH . 'fonts';
 
         if (!is_dir($fontsDir)) {
@@ -225,6 +225,8 @@ $og_option_keys = [
     'wp_og_takumi_template_tour',
     'wp_og_takumi_template_destination',
     'wp_og_takumi_template_guide',
+    'wp_og_takumi_font_heading',
+    'wp_og_takumi_font_body',
 ];
 foreach ($og_option_keys as $key) {
     add_action("update_option_{$key}", [WP_OG_Takumi_Renderer::class, 'invalidateAllCaches']);

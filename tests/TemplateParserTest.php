@@ -10,6 +10,15 @@ class TemplateParserTest extends TestCase {
     protected function setUp(): void {
         parent::setUp();
         Monkey\setUp();
+
+        // Stub font settings — return empty to use defaults
+        Monkey\Functions\stubs([
+            'get_option' => '',
+            'get_theme_mod' => function (string $key, $default = '') {
+                return $default;
+            },
+        ]);
+
         $this->engine = new WP_OG_Takumi_Template_Engine();
     }
 
@@ -29,7 +38,8 @@ class TemplateParserTest extends TestCase {
 
         $this->assertEquals('text', $tree['type']);
         $this->assertEquals('Hello World', $tree['content']);
-        $this->assertEquals('text-6xl font-bold text-white', $tree['tw']);
+        $this->assertStringContainsString('text-6xl font-bold text-white', $tree['tw']);
+        $this->assertStringContainsString("font-['Playfair_Display']", $tree['tw']);
     }
 
     public function test_container_with_children(): void {

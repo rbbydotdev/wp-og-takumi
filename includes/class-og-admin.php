@@ -24,6 +24,29 @@ class WP_OG_Takumi_Admin {
         );
     }
 
+    private static array $font_choices = [
+        ''                   => '— Use theme font —',
+        'Playfair Display'   => 'Playfair Display',
+        'Cormorant Garamond' => 'Cormorant Garamond',
+        'Libre Baskerville'  => 'Libre Baskerville',
+        'DM Serif Display'   => 'DM Serif Display',
+        'Fraunces'           => 'Fraunces',
+        'Lora'               => 'Lora',
+        'Merriweather'       => 'Merriweather',
+        'Source Sans 3'      => 'Source Sans 3',
+        'Lato'               => 'Lato',
+        'Work Sans'          => 'Work Sans',
+        'Nunito Sans'        => 'Nunito Sans',
+        'DM Sans'            => 'DM Sans',
+        'Open Sans'          => 'Open Sans',
+        'Raleway'            => 'Raleway',
+        'Inter'              => 'Inter',
+        'Poppins'            => 'Poppins',
+        'Montserrat'         => 'Montserrat',
+        'Roboto'             => 'Roboto',
+        'Oswald'             => 'Oswald',
+    ];
+
     public static function registerSettings(): void {
         // No wp_kses_post — it strips the tw attribute which is essential
         // for Takumi rendering. Only admins (manage_options) can save these.
@@ -36,6 +59,18 @@ class WP_OG_Takumi_Admin {
                 'type' => 'string',
             ]);
         }
+
+        // Font settings
+        register_setting('wp_og_takumi_settings', 'wp_og_takumi_font_heading', [
+            'type'              => 'string',
+            'default'           => '',
+            'sanitize_callback' => 'sanitize_text_field',
+        ]);
+        register_setting('wp_og_takumi_settings', 'wp_og_takumi_font_body', [
+            'type'              => 'string',
+            'default'           => '',
+            'sanitize_callback' => 'sanitize_text_field',
+        ]);
     }
 
     public static function renderSettingsPage(): void {
@@ -78,7 +113,38 @@ class WP_OG_Takumi_Admin {
             <form method="post" action="options.php">
                 <?php settings_fields('wp_og_takumi_settings'); ?>
 
-                <div id="wp-og-takumi-editor-wrap" style="margin-top: 20px;">
+                <?php
+                $og_heading_font = get_option('wp_og_takumi_font_heading', '');
+                $og_body_font = get_option('wp_og_takumi_font_body', '');
+
+                // Resolve display names for the "Use theme font" option
+                $theme_heading = function_exists('get_theme_mod') ? get_theme_mod('hannies_font_heading', 'Playfair Display') : 'Playfair Display';
+                $theme_body = function_exists('get_theme_mod') ? get_theme_mod('hannies_font_body', 'Source Sans 3') : 'Source Sans 3';
+                ?>
+                <div style="margin-top: 20px; display: flex; gap: 24px; align-items: end; margin-bottom: 16px;">
+                    <div>
+                        <label for="wp-og-takumi-font-heading" style="display: block; font-weight: 600; margin-bottom: 4px;">Heading Font</label>
+                        <select id="wp-og-takumi-font-heading" name="wp_og_takumi_font_heading" style="min-width: 200px;">
+                            <?php foreach (self::$font_choices as $value => $label) : ?>
+                                <option value="<?php echo esc_attr($value); ?>" <?php selected($og_heading_font, $value); ?>>
+                                    <?php echo esc_html($value === '' ? "— Use theme font ({$theme_heading}) —" : $label); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="wp-og-takumi-font-body" style="display: block; font-weight: 600; margin-bottom: 4px;">Body Font</label>
+                        <select id="wp-og-takumi-font-body" name="wp_og_takumi_font_body" style="min-width: 200px;">
+                            <?php foreach (self::$font_choices as $value => $label) : ?>
+                                <option value="<?php echo esc_attr($value); ?>" <?php selected($og_body_font, $value); ?>>
+                                    <?php echo esc_html($value === '' ? "— Use theme font ({$theme_body}) —" : $label); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="wp-og-takumi-editor-wrap">
                     <textarea id="wp-og-takumi-template" name="<?php echo esc_attr($option_key); ?>"
                               style="display:none;"><?php echo esc_textarea($template_value); ?></textarea>
                     <div id="wp-og-takumi-cm-editor"></div>

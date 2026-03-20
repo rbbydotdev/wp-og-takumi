@@ -5,7 +5,7 @@
          colors="true"
          cacheDirectory=".phpunit.cache">
     <testsuites>
-        <testsuite name="hannies-og">
+        <testsuite name="wp-og-takumi">
             <directory>tests</directory>
         </testsuite>
     </testsuites>

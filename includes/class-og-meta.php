@@ -2,7 +2,7 @@
 
 defined('ABSPATH') || exit;
 
-class Hannies_OG_Meta {
+class WP_OG_Takumi_Meta {
 
     public static function init(): void {
         add_action('wp_head', [self::class, 'outputMetaTags'], 1);
@@ -18,7 +18,7 @@ class Hannies_OG_Meta {
             return;
         }
 
-        $image_url = rest_url("hannies/v1/og-image/{$post_id}");
+        $image_url = rest_url("wp-og-takumi/v1/og-image/{$post_id}");
         $width = 1200;
         $height = 630;
 

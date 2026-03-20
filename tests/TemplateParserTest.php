@@ -5,12 +5,12 @@ use Brain\Monkey;
 
 class TemplateParserTest extends TestCase {
 
-    private Hannies_OG_Template_Engine $engine;
+    private WP_OG_Takumi_Template_Engine $engine;
 
     protected function setUp(): void {
         parent::setUp();
         Monkey\setUp();
-        $this->engine = new Hannies_OG_Template_Engine();
+        $this->engine = new WP_OG_Takumi_Template_Engine();
     }
 
     protected function tearDown(): void {
@@ -94,12 +94,12 @@ class TemplateParserTest extends TestCase {
     }
 
     public function test_full_default_template(): void {
-        $template = file_get_contents(HANNIES_OG_PATH . 'templates/default.html');
+        $template = file_get_contents(WP_OG_TAKUMI_PATH . 'templates/default.html');
         $vars = [
             'post_type_label' => 'Post',
             'title' => 'Amazing Journey',
             'excerpt' => 'An incredible adventure awaits.',
-            'site_name' => 'Hannies Travels',
+            'site_name' => 'Your Site Name',
             'date' => 'March 19, 2026',
         ];
         $html = $this->engine->substitute($template, $vars);
@@ -112,18 +112,18 @@ class TemplateParserTest extends TestCase {
         // Verify the template content is in the tree somewhere
         $json = json_encode($tree);
         $this->assertStringContainsString('Amazing Journey', $json);
-        $this->assertStringContainsString('Hannies Travels', $json);
+        $this->assertStringContainsString('Your Site Name', $json);
     }
 
     public function test_full_tour_template(): void {
-        $template = file_get_contents(HANNIES_OG_PATH . 'templates/tour.html');
+        $template = file_get_contents(WP_OG_TAKUMI_PATH . 'templates/tour.html');
         $vars = [
             'title' => 'Bangkok Explorer',
             'excerpt' => 'Discover the best of Bangkok.',
             'price' => '$199',
             'duration' => '3 days',
             'location' => 'Bangkok',
-            'site_name' => 'Hannies Travels',
+            'site_name' => 'Your Site Name',
         ];
         $html = $this->engine->substitute($template, $vars);
         $tree = $this->engine->toNodeTree($html);

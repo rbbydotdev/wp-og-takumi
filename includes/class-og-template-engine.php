@@ -2,7 +2,7 @@
 
 defined('ABSPATH') || exit;
 
-class Hannies_OG_Template_Engine {
+class WP_OG_Takumi_Template_Engine {
 
     /**
      * Resolve the template string for a given post, following the cascade:
@@ -19,22 +19,22 @@ class Hannies_OG_Template_Engine {
 
         $post_type = get_post_type($post_id);
 
-        $per_type = get_option("hannies_og_template_{$post_type}", '');
+        $per_type = get_option("wp_og_takumi_template_{$post_type}", '');
         if (is_string($per_type) && trim($per_type) !== '') {
             return $per_type;
         }
 
-        $global = get_option('hannies_og_default_template', '');
+        $global = get_option('wp_og_takumi_default_template', '');
         if (is_string($global) && trim($global) !== '') {
             return $global;
         }
 
-        $type_file = HANNIES_OG_PATH . "templates/{$post_type}.html";
+        $type_file = WP_OG_TAKUMI_PATH . "templates/{$post_type}.html";
         if (file_exists($type_file)) {
             return file_get_contents($type_file);
         }
 
-        $default_file = HANNIES_OG_PATH . 'templates/default.html';
+        $default_file = WP_OG_TAKUMI_PATH . 'templates/default.html';
         if (file_exists($default_file)) {
             return file_get_contents($default_file);
         }
@@ -228,10 +228,10 @@ class Hannies_OG_Template_Engine {
      */
     public function getThemeFonts(): array {
         $heading = function_exists('get_theme_mod')
-            ? get_theme_mod('hannies_font_heading', 'Playfair Display')
+            ? get_theme_mod('og_takumi_font_heading', 'Playfair Display')
             : 'Playfair Display';
         $body = function_exists('get_theme_mod')
-            ? get_theme_mod('hannies_font_body', 'Source Sans 3')
+            ? get_theme_mod('og_takumi_font_body', 'Source Sans 3')
             : 'Source Sans 3';
 
         return ['heading' => $heading, 'body' => $body];

@@ -5,7 +5,7 @@
  * Verifies the full pipeline: template engine → JSON node tree → Takumi FFI → PNG.
  * Also tests the REST endpoint and OG meta output.
  *
- * Run: docker compose exec wordpress php wp-content/plugins/hannies-og/tests/integration-test.php
+ * Run: docker compose exec wordpress php wp-content/plugins/wp-og-takumi/tests/integration-test.php
  */
 
 $_SERVER['HTTP_HOST'] = 'localhost:8080';
@@ -33,29 +33,29 @@ echo "=== Integration Test ===\n\n";
 if (!function_exists('is_plugin_active')) {
     require_once ABSPATH . 'wp-admin/includes/plugin.php';
 }
-if (!is_plugin_active('hannies-og/hannies-og.php')) {
-    activate_plugin('hannies-og/hannies-og.php');
-    echo "  Activated hannies-og plugin.\n";
+if (!is_plugin_active('wp-og-takumi/wp-og-takumi.php')) {
+    activate_plugin('wp-og-takumi/wp-og-takumi.php');
+    echo "  Activated wp-og-takumi plugin.\n";
 }
 
 // --- Test 1: Plugin classes are loaded ---
-assert_test('Hannies_OG_Template_Engine class exists', class_exists('Hannies_OG_Template_Engine'));
-assert_test('Hannies_OG_Renderer class exists', class_exists('Hannies_OG_Renderer'));
-assert_test('Hannies_OG_Meta class exists', class_exists('Hannies_OG_Meta'));
-assert_test('Hannies_OG_Endpoint class exists', class_exists('Hannies_OG_Endpoint'));
+assert_test('WP_OG_Takumi_Template_Engine class exists', class_exists('WP_OG_Takumi_Template_Engine'));
+assert_test('WP_OG_Takumi_Renderer class exists', class_exists('WP_OG_Takumi_Renderer'));
+assert_test('WP_OG_Takumi_Meta class exists', class_exists('WP_OG_Takumi_Meta'));
+assert_test('WP_OG_Takumi_Endpoint class exists', class_exists('WP_OG_Takumi_Endpoint'));
 
 // --- Test 2: Template engine produces valid node tree ---
 echo "\n--- Template Engine ---\n";
-$engine = new Hannies_OG_Template_Engine();
+$engine = new WP_OG_Takumi_Template_Engine();
 
-$template = file_get_contents(HANNIES_OG_PATH . 'templates/default.html');
+$template = file_get_contents(WP_OG_TAKUMI_PATH . 'templates/default.html');
 assert_test('Default template loaded', strlen($template) > 50, strlen($template) . ' chars');
 
 $variables = [
     'post_type_label' => 'Tour',
     'title' => 'Bangkok Explorer',
     'excerpt' => 'Discover the best temples and street food in Bangkok.',
-    'site_name' => "Hannie's Travels",
+    'site_name' => "Your Site Name",
     'date' => 'March 19, 2026',
 ];
 
@@ -70,18 +70,18 @@ assert_test('Root has style attribute (gradient)', !empty($nodeTree['style']));
 
 $json = json_encode($nodeTree, JSON_UNESCAPED_UNICODE);
 assert_test('Node tree contains title', str_contains($json, 'Bangkok Explorer'));
-assert_test('Node tree contains site name', str_contains($json, "Hannie's Travels"));
+assert_test('Node tree contains site name', str_contains($json, "Your Site Name"));
 
 // --- Test 3: Tour template ---
 echo "\n--- Tour Template ---\n";
-$tour_template = file_get_contents(HANNIES_OG_PATH . 'templates/tour.html');
+$tour_template = file_get_contents(WP_OG_TAKUMI_PATH . 'templates/tour.html');
 $tour_vars = [
     'title' => 'Chiang Mai Trekking',
     'excerpt' => 'Three days through the northern mountains.',
     'price' => '$299',
     'duration' => '3 days',
     'location' => 'Chiang Mai',
-    'site_name' => "Hannie's Travels",
+    'site_name' => "Your Site Name",
 ];
 $tour_html = $engine->substitute($tour_template, $tour_vars);
 $tour_tree = $engine->toNodeTree($tour_html);
@@ -123,7 +123,7 @@ echo "\n--- FFI Render Pipeline ---\n";
 $renderer = null;
 $ffi_available = true;
 try {
-    $renderer = new Hannies_OG_Renderer();
+    $renderer = new WP_OG_Takumi_Renderer();
 
     // Render the default template node tree
     $render_json = json_encode($nodeTree, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE);
@@ -149,7 +149,7 @@ try {
 if ($ffi_available && $test_post_id > 0) {
     echo "\n--- Cached Render ---\n";
 
-    Hannies_OG_Renderer::invalidateCache($test_post_id);
+    WP_OG_Takumi_Renderer::invalidateCache($test_post_id);
 
     $cache_path = $renderer->renderCached($test_post_id);
     assert_test('renderCached returns file path', file_exists($cache_path), $cache_path);
@@ -162,7 +162,7 @@ if ($ffi_available && $test_post_id > 0) {
         $cache_path2 = $renderer->renderCached($test_post_id);
         assert_test('Second call returns same path', $cache_path === $cache_path2);
 
-        Hannies_OG_Renderer::invalidateCache($test_post_id);
+        WP_OG_Takumi_Renderer::invalidateCache($test_post_id);
         assert_test('Cache invalidated', !file_exists($cache_path));
     }
 }
@@ -172,7 +172,7 @@ echo "\n--- REST Endpoint ---\n";
 do_action('rest_api_init');
 $server = rest_get_server();
 $routes = $server->get_routes();
-$has_route = isset($routes['/hannies/v1/og-image/(?P<id>\\d+)']);
+$has_route = isset($routes['/wp-og-takumi/v1/og-image/(?P<id>\\d+)']);
 assert_test('REST route registered', $has_route);
 
 if ($has_route && $test_post_id > 0 && $ffi_available) {
@@ -186,19 +186,19 @@ if ($test_post_id > 0) {
     $wp_query = new WP_Query(['p' => $test_post_id, 'post_type' => 'post']);
 
     ob_start();
-    Hannies_OG_Meta::outputMetaTags();
+    WP_OG_Takumi_Meta::outputMetaTags();
     $meta_output = ob_get_clean();
 
     assert_test('OG meta output non-empty', strlen($meta_output) > 0);
     assert_test('Contains og:image tag', str_contains($meta_output, 'og:image'));
     assert_test('Contains og:image:width', str_contains($meta_output, 'og:image:width'));
     assert_test('Contains twitter:card', str_contains($meta_output, 'twitter:card'));
-    assert_test('Image URL points to REST endpoint', str_contains($meta_output, '/hannies/v1/og-image/'));
+    assert_test('Image URL points to REST endpoint', str_contains($meta_output, '/wp-og-takumi/v1/og-image/'));
 }
 
 // --- Cleanup ---
 if ($test_post_id > 0) {
-    Hannies_OG_Renderer::invalidateCache($test_post_id);
+    WP_OG_Takumi_Renderer::invalidateCache($test_post_id);
     wp_delete_post($test_post_id, true);
 }
 

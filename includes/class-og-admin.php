@@ -2,7 +2,7 @@
 
 defined('ABSPATH') || exit;
 
-class Hannies_OG_Admin {
+class WP_OG_Takumi_Admin {
 
     private static array $supported_post_types = ['post', 'page', 'tour', 'destination', 'guide'];
 
@@ -19,19 +19,19 @@ class Hannies_OG_Admin {
             'OG Images',
             'OG Images',
             'manage_options',
-            'hannies-og',
+            'wp-og-takumi',
             [self::class, 'renderSettingsPage']
         );
     }
 
     public static function registerSettings(): void {
-        register_setting('hannies_og_settings', 'hannies_og_default_template', [
+        register_setting('wp_og_takumi_settings', 'wp_og_takumi_default_template', [
             'type'              => 'string',
             'sanitize_callback' => 'wp_kses_post',
         ]);
 
         foreach (self::$supported_post_types as $type) {
-            register_setting('hannies_og_settings', "hannies_og_template_{$type}", [
+            register_setting('wp_og_takumi_settings', "wp_og_takumi_template_{$type}", [
                 'type'              => 'string',
                 'sanitize_callback' => 'wp_kses_post',
             ]);
@@ -48,8 +48,8 @@ class Hannies_OG_Admin {
         }
 
         $option_key = $current_tab === 'default'
-            ? 'hannies_og_default_template'
-            : "hannies_og_template_{$current_tab}";
+            ? 'wp_og_takumi_default_template'
+            : "wp_og_takumi_template_{$current_tab}";
 
         $template_value = get_option($option_key, '');
 
@@ -68,7 +68,7 @@ class Hannies_OG_Admin {
 
             <nav class="nav-tab-wrapper">
                 <?php foreach ($tabs as $slug => $label) : ?>
-                    <a href="<?php echo esc_url(add_query_arg(['page' => 'hannies-og', 'tab' => $slug], admin_url('options-general.php'))); ?>"
+                    <a href="<?php echo esc_url(add_query_arg(['page' => 'wp-og-takumi', 'tab' => $slug], admin_url('options-general.php'))); ?>"
                        class="nav-tab <?php echo $current_tab === $slug ? 'nav-tab-active' : ''; ?>">
                         <?php echo esc_html($label); ?>
                     </a>
@@ -76,24 +76,24 @@ class Hannies_OG_Admin {
             </nav>
 
             <form method="post" action="options.php">
-                <?php settings_fields('hannies_og_settings'); ?>
+                <?php settings_fields('wp_og_takumi_settings'); ?>
 
-                <div id="hannies-og-editor-wrap" style="margin-top: 20px;">
-                    <textarea id="hannies-og-template" name="<?php echo esc_attr($option_key); ?>"
+                <div id="wp-og-takumi-editor-wrap" style="margin-top: 20px;">
+                    <textarea id="wp-og-takumi-template" name="<?php echo esc_attr($option_key); ?>"
                               style="display:none;"><?php echo esc_textarea($template_value); ?></textarea>
-                    <div id="hannies-og-cm-editor"></div>
+                    <div id="wp-og-takumi-cm-editor"></div>
                 </div>
 
                 <div style="margin-top: 12px; display: flex; gap: 8px; align-items: center;">
-                    <button type="button" id="hannies-og-format-btn" class="button">Format</button>
-                    <button type="button" id="hannies-og-reset-btn" class="button">Reset to Default</button>
-                    <button type="button" id="hannies-og-media-btn" class="button">Insert Image</button>
+                    <button type="button" id="wp-og-takumi-format-btn" class="button">Format</button>
+                    <button type="button" id="wp-og-takumi-reset-btn" class="button">Reset to Default</button>
+                    <button type="button" id="wp-og-takumi-media-btn" class="button">Insert Image</button>
                     <span style="flex: 1;"></span>
-                    <button type="button" id="hannies-og-preview-btn" class="button button-secondary">Preview</button>
+                    <button type="button" id="wp-og-takumi-preview-btn" class="button button-secondary">Preview</button>
                 </div>
 
-                <div id="hannies-og-preview" style="margin-top: 15px; display: none;">
-                    <img id="hannies-og-preview-img" style="max-width: 600px; border: 1px solid #ddd; border-radius: 4px;" />
+                <div id="wp-og-takumi-preview" style="margin-top: 15px; display: none;">
+                    <img id="wp-og-takumi-preview-img" style="max-width: 600px; border: 1px solid #ddd; border-radius: 4px;" />
                 </div>
 
                 <h3>Available Variables</h3>
@@ -119,7 +119,7 @@ class Hannies_OG_Admin {
     public static function addMetaBox(): void {
         foreach (self::$supported_post_types as $type) {
             add_meta_box(
-                'hannies_og_template',
+                'wp_og_takumi_template',
                 'OG Image Template',
                 [self::class, 'renderMetaBox'],
                 $type,
@@ -130,38 +130,38 @@ class Hannies_OG_Admin {
     }
 
     public static function renderMetaBox(\WP_Post $post): void {
-        wp_nonce_field('hannies_og_meta', 'hannies_og_nonce');
+        wp_nonce_field('wp_og_takumi_meta', 'wp_og_takumi_nonce');
 
         $custom_template = get_post_meta($post->ID, '_og_template', true);
         $use_custom = !empty($custom_template);
         ?>
         <p>
             <label>
-                <input type="checkbox" id="hannies-og-use-custom" name="hannies_og_use_custom"
+                <input type="checkbox" id="wp-og-takumi-use-custom" name="wp_og_takumi_use_custom"
                        value="1" <?php checked($use_custom); ?> />
                 Use custom OG template for this post
             </label>
         </p>
-        <div id="hannies-og-post-editor-wrap" style="<?php echo $use_custom ? '' : 'display:none;'; ?>">
-            <textarea id="hannies-og-post-template" name="hannies_og_post_template"
+        <div id="wp-og-takumi-post-editor-wrap" style="<?php echo $use_custom ? '' : 'display:none;'; ?>">
+            <textarea id="wp-og-takumi-post-template" name="wp_og_takumi_post_template"
                       style="display:none;"><?php echo esc_textarea($custom_template); ?></textarea>
-            <div id="hannies-og-post-cm-editor"></div>
+            <div id="wp-og-takumi-post-cm-editor"></div>
             <div style="margin-top: 10px; display: flex; gap: 8px; align-items: center;">
-                <button type="button" id="hannies-og-post-format-btn" class="button">Format</button>
-                <button type="button" id="hannies-og-post-reset-btn" class="button">Reset to Default</button>
-                <button type="button" id="hannies-og-post-media-btn" class="button">Insert Image</button>
+                <button type="button" id="wp-og-takumi-post-format-btn" class="button">Format</button>
+                <button type="button" id="wp-og-takumi-post-reset-btn" class="button">Reset to Default</button>
+                <button type="button" id="wp-og-takumi-post-media-btn" class="button">Insert Image</button>
                 <span style="flex: 1;"></span>
-                <button type="button" id="hannies-og-post-preview-btn" class="button button-secondary">Preview</button>
+                <button type="button" id="wp-og-takumi-post-preview-btn" class="button button-secondary">Preview</button>
             </div>
-            <div id="hannies-og-post-preview" style="margin-top: 10px; display: none;">
-                <img id="hannies-og-post-preview-img" style="max-width: 100%; border: 1px solid #ddd; border-radius: 4px;" />
+            <div id="wp-og-takumi-post-preview" style="margin-top: 10px; display: none;">
+                <img id="wp-og-takumi-post-preview-img" style="max-width: 100%; border: 1px solid #ddd; border-radius: 4px;" />
             </div>
         </div>
         <?php
     }
 
     public static function saveMetaBox(int $post_id): void {
-        if (!isset($_POST['hannies_og_nonce']) || !wp_verify_nonce($_POST['hannies_og_nonce'], 'hannies_og_meta')) {
+        if (!isset($_POST['wp_og_takumi_nonce']) || !wp_verify_nonce($_POST['wp_og_takumi_nonce'], 'wp_og_takumi_meta')) {
             return;
         }
 
@@ -173,22 +173,22 @@ class Hannies_OG_Admin {
             return;
         }
 
-        if (!empty($_POST['hannies_og_use_custom']) && !empty($_POST['hannies_og_post_template'])) {
-            update_post_meta($post_id, '_og_template', wp_kses_post($_POST['hannies_og_post_template']));
+        if (!empty($_POST['wp_og_takumi_use_custom']) && !empty($_POST['wp_og_takumi_post_template'])) {
+            update_post_meta($post_id, '_og_template', wp_kses_post($_POST['wp_og_takumi_post_template']));
         } else {
             delete_post_meta($post_id, '_og_template');
         }
     }
 
     public static function enqueueAssets(string $hook): void {
-        $is_settings = $hook === 'settings_page_hannies-og';
+        $is_settings = $hook === 'settings_page_wp-og-takumi';
         $is_post_edit = in_array($hook, ['post.php', 'post-new.php'], true);
 
         if (!$is_settings && !$is_post_edit) {
             return;
         }
 
-        $asset_file = HANNIES_OG_PATH . 'build/og-admin.asset.php';
+        $asset_file = WP_OG_TAKUMI_PATH . 'build/og-admin.asset.php';
         if (!file_exists($asset_file)) {
             return;
         }
@@ -196,33 +196,33 @@ class Hannies_OG_Admin {
         $asset = require $asset_file;
 
         wp_enqueue_script(
-            'hannies-og-admin',
-            HANNIES_OG_URL . 'build/og-admin.js',
+            'wp-og-takumi-admin',
+            WP_OG_TAKUMI_URL . 'build/og-admin.js',
             $asset['dependencies'] ?? [],
-            $asset['version'] ?? HANNIES_OG_VERSION,
+            $asset['version'] ?? WP_OG_TAKUMI_VERSION,
             true
         );
 
-        $css_file = HANNIES_OG_PATH . 'build/og-admin.css';
+        $css_file = WP_OG_TAKUMI_PATH . 'build/og-admin.css';
         if (file_exists($css_file)) {
             wp_enqueue_style(
-                'hannies-og-admin',
-                HANNIES_OG_URL . 'build/og-admin.css',
+                'wp-og-takumi-admin',
+                WP_OG_TAKUMI_URL . 'build/og-admin.css',
                 [],
-                $asset['version'] ?? HANNIES_OG_VERSION
+                $asset['version'] ?? WP_OG_TAKUMI_VERSION
             );
         }
 
         // Minimal inline styles for the editor wrapper (CM6 injects its own styles via JS)
         wp_add_inline_style('wp-admin', '
-            #hannies-og-cm-editor,
-            #hannies-og-post-cm-editor {
+            #wp-og-takumi-cm-editor,
+            #wp-og-takumi-post-cm-editor {
                 border: 1px solid #3c434a;
                 border-radius: 4px;
                 overflow: hidden;
             }
-            #hannies-og-cm-editor .cm-editor,
-            #hannies-og-post-cm-editor .cm-editor {
+            #wp-og-takumi-cm-editor .cm-editor,
+            #wp-og-takumi-post-cm-editor .cm-editor {
                 min-height: 280px;
             }
         ');
@@ -247,8 +247,8 @@ class Hannies_OG_Admin {
             }
         }
 
-        wp_localize_script('hannies-og-admin', 'hanniesOg', [
-            'restUrl'         => rest_url('hannies/v1/'),
+        wp_localize_script('wp-og-takumi-admin', 'wpOgTakumi', [
+            'restUrl'         => rest_url('wp-og-takumi/v1/'),
             'nonce'           => wp_create_nonce('wp_rest'),
             'defaultTemplate' => $default_template,
             'postId'          => $post_id,
@@ -260,11 +260,11 @@ class Hannies_OG_Admin {
      * Load the file-based template for a post type (or 'default').
      */
     private static function getFileTemplate(string $type): string {
-        $file = HANNIES_OG_PATH . "templates/{$type}.html";
+        $file = WP_OG_TAKUMI_PATH . "templates/{$type}.html";
         if (file_exists($file)) {
             return file_get_contents($file);
         }
-        $default = HANNIES_OG_PATH . 'templates/default.html';
+        $default = WP_OG_TAKUMI_PATH . 'templates/default.html';
         if (file_exists($default)) {
             return file_get_contents($default);
         }

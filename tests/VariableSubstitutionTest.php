@@ -5,12 +5,12 @@ use Brain\Monkey;
 
 class VariableSubstitutionTest extends TestCase {
 
-    private Hannies_OG_Template_Engine $engine;
+    private WP_OG_Takumi_Template_Engine $engine;
 
     protected function setUp(): void {
         parent::setUp();
         Monkey\setUp();
-        $this->engine = new Hannies_OG_Template_Engine();
+        $this->engine = new WP_OG_Takumi_Template_Engine();
     }
 
     protected function tearDown(): void {

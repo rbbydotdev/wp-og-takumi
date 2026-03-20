@@ -9,7 +9,7 @@ class OgMetaOutputTest extends TestCase {
     protected function setUp(): void {
         parent::setUp();
         Monkey\setUp();
-        require_once HANNIES_OG_PATH . 'includes/class-og-meta.php';
+        require_once WP_OG_TAKUMI_PATH . 'includes/class-og-meta.php';
     }
 
     protected function tearDown(): void {
@@ -22,13 +22,13 @@ class OgMetaOutputTest extends TestCase {
         Functions\expect('get_queried_object_id')->once()->andReturn(42);
         Functions\expect('rest_url')
             ->once()
-            ->with('hannies/v1/og-image/42')
-            ->andReturn('http://localhost:8080/wp-json/hannies/v1/og-image/42');
+            ->with('wp-og-takumi/v1/og-image/42')
+            ->andReturn('http://localhost:8080/wp-json/wp-og-takumi/v1/og-image/42');
         Functions\expect('esc_url')->andReturnFirstArg();
         Functions\expect('esc_attr')->andReturnFirstArg();
 
         ob_start();
-        Hannies_OG_Meta::outputMetaTags();
+        WP_OG_Takumi_Meta::outputMetaTags();
         $output = ob_get_clean();
 
         $this->assertStringContainsString('og:image', $output);
@@ -44,7 +44,7 @@ class OgMetaOutputTest extends TestCase {
         Functions\expect('is_singular')->once()->andReturn(false);
 
         ob_start();
-        Hannies_OG_Meta::outputMetaTags();
+        WP_OG_Takumi_Meta::outputMetaTags();
         $output = ob_get_clean();
 
         $this->assertEmpty($output);
@@ -55,7 +55,7 @@ class OgMetaOutputTest extends TestCase {
         Functions\expect('get_queried_object_id')->once()->andReturn(0);
 
         ob_start();
-        Hannies_OG_Meta::outputMetaTags();
+        WP_OG_Takumi_Meta::outputMetaTags();
         $output = ob_get_clean();
 
         $this->assertEmpty($output);

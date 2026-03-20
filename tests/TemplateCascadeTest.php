@@ -6,12 +6,12 @@ use Brain\Monkey\Functions;
 
 class TemplateCascadeTest extends TestCase {
 
-    private Hannies_OG_Template_Engine $engine;
+    private WP_OG_Takumi_Template_Engine $engine;
 
     protected function setUp(): void {
         parent::setUp();
         Monkey\setUp();
-        $this->engine = new Hannies_OG_Template_Engine();
+        $this->engine = new WP_OG_Takumi_Template_Engine();
     }
 
     protected function tearDown(): void {
@@ -46,7 +46,7 @@ class TemplateCascadeTest extends TestCase {
 
         Functions\expect('get_option')
             ->once()
-            ->with('hannies_og_template_tour', '')
+            ->with('wp_og_takumi_template_tour', '')
             ->andReturn($typeTemplate);
 
         $result = $this->engine->resolveTemplate(42);
@@ -68,12 +68,12 @@ class TemplateCascadeTest extends TestCase {
 
         Functions\expect('get_option')
             ->once()
-            ->with('hannies_og_template_post', '')
+            ->with('wp_og_takumi_template_post', '')
             ->andReturn('');
 
         Functions\expect('get_option')
             ->once()
-            ->with('hannies_og_default_template', '')
+            ->with('wp_og_takumi_default_template', '')
             ->andReturn($globalTemplate);
 
         $result = $this->engine->resolveTemplate(42);
@@ -93,18 +93,18 @@ class TemplateCascadeTest extends TestCase {
 
         Functions\expect('get_option')
             ->once()
-            ->with('hannies_og_template_tour', '')
+            ->with('wp_og_takumi_template_tour', '')
             ->andReturn('');
 
         Functions\expect('get_option')
             ->once()
-            ->with('hannies_og_default_template', '')
+            ->with('wp_og_takumi_default_template', '')
             ->andReturn('');
 
         $result = $this->engine->resolveTemplate(42);
 
         // Should load from templates/tour.html
-        $expected = file_get_contents(HANNIES_OG_PATH . 'templates/tour.html');
+        $expected = file_get_contents(WP_OG_TAKUMI_PATH . 'templates/tour.html');
         $this->assertEquals($expected, $result);
     }
 
@@ -121,18 +121,18 @@ class TemplateCascadeTest extends TestCase {
 
         Functions\expect('get_option')
             ->once()
-            ->with('hannies_og_template_nonexistent_type', '')
+            ->with('wp_og_takumi_template_nonexistent_type', '')
             ->andReturn('');
 
         Functions\expect('get_option')
             ->once()
-            ->with('hannies_og_default_template', '')
+            ->with('wp_og_takumi_default_template', '')
             ->andReturn('');
 
         $result = $this->engine->resolveTemplate(42);
 
         // Should fall back to templates/default.html
-        $expected = file_get_contents(HANNIES_OG_PATH . 'templates/default.html');
+        $expected = file_get_contents(WP_OG_TAKUMI_PATH . 'templates/default.html');
         $this->assertEquals($expected, $result);
     }
 }

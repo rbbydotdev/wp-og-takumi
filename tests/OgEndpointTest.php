@@ -9,8 +9,8 @@ class OgEndpointTest extends TestCase {
     protected function setUp(): void {
         parent::setUp();
         Monkey\setUp();
-        require_once HANNIES_OG_PATH . 'includes/class-og-renderer.php';
-        require_once HANNIES_OG_PATH . 'includes/class-og-endpoint.php';
+        require_once WP_OG_TAKUMI_PATH . 'includes/class-og-renderer.php';
+        require_once WP_OG_TAKUMI_PATH . 'includes/class-og-endpoint.php';
     }
 
     protected function tearDown(): void {
@@ -23,12 +23,12 @@ class OgEndpointTest extends TestCase {
 
         Functions\expect('register_rest_route')
             ->once()
-            ->with('hannies/v1', '/og-image/(?P<id>\d+)', \Mockery::type('array'))
+            ->with('wp-og-takumi/v1', '/og-image/(?P<id>\d+)', \Mockery::type('array'))
             ->andReturnUsing(function () use (&$registered) {
                 $registered = true;
             });
 
-        Hannies_OG_Endpoint::registerRoutes();
+        WP_OG_Takumi_Endpoint::registerRoutes();
         $this->assertTrue($registered);
     }
 
@@ -43,7 +43,7 @@ class OgEndpointTest extends TestCase {
             $this->markTestSkipped('WP_Error not available in unit test context');
         }
 
-        $result = Hannies_OG_Endpoint::handleRequest($request);
+        $result = WP_OG_Takumi_Endpoint::handleRequest($request);
         $this->assertInstanceOf('WP_Error', $result);
     }
 }

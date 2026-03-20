@@ -5,7 +5,7 @@ import { keymap } from '@codemirror/view';
 import { indentWithTab } from '@codemirror/commands';
 import { EditorState } from '@codemirror/state';
 
-declare const hanniesOg: {
+declare const wpOgTakumi: {
     restUrl: string;
     nonce: string;
     defaultTemplate: string;
@@ -186,11 +186,11 @@ function wirePreviewButton(
             };
             if (postId) body.post_id = postId;
 
-            const resp = await fetch(hanniesOg.restUrl + 'og-preview', {
+            const resp = await fetch(wpOgTakumi.restUrl + 'og-preview', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-WP-Nonce': hanniesOg.nonce,
+                    'X-WP-Nonce': wpOgTakumi.nonce,
                 },
                 body: JSON.stringify(body),
             });
@@ -280,46 +280,46 @@ function insertImageTag(editor: EditorInstance, url: string, width?: number, hei
 
 document.addEventListener('DOMContentLoaded', () => {
     // Settings page editor
-    const settingsTextarea = document.getElementById('hannies-og-template') as HTMLTextAreaElement | null;
-    const settingsContainer = document.getElementById('hannies-og-cm-editor');
+    const settingsTextarea = document.getElementById('wp-og-takumi-template') as HTMLTextAreaElement | null;
+    const settingsContainer = document.getElementById('wp-og-takumi-cm-editor');
 
     if (settingsTextarea && settingsContainer) {
         const editor = createEditor(settingsContainer, settingsTextarea);
 
-        wireFormatButton('hannies-og-format-btn', editor);
-        wireResetButton('hannies-og-reset-btn', editor, hanniesOg.defaultTemplate || '');
-        wireMediaButton('hannies-og-media-btn', editor);
-        wirePreviewButton('hannies-og-preview-btn', 'hannies-og-preview-img', 'hannies-og-preview', editor);
+        wireFormatButton('wp-og-takumi-format-btn', editor);
+        wireResetButton('wp-og-takumi-reset-btn', editor, wpOgTakumi.defaultTemplate || '');
+        wireMediaButton('wp-og-takumi-media-btn', editor);
+        wirePreviewButton('wp-og-takumi-preview-btn', 'wp-og-takumi-preview-img', 'wp-og-takumi-preview', editor);
     }
 
     // Per-post meta box editor
-    const postTextarea = document.getElementById('hannies-og-post-template') as HTMLTextAreaElement | null;
-    const postContainer = document.getElementById('hannies-og-post-cm-editor');
+    const postTextarea = document.getElementById('wp-og-takumi-post-template') as HTMLTextAreaElement | null;
+    const postContainer = document.getElementById('wp-og-takumi-post-cm-editor');
 
     if (postTextarea && postContainer) {
         const editor = createEditor(postContainer, postTextarea);
 
-        wireFormatButton('hannies-og-post-format-btn', editor);
-        wireResetButton('hannies-og-post-reset-btn', editor, hanniesOg.defaultTemplate || '');
-        wireMediaButton('hannies-og-post-media-btn', editor);
+        wireFormatButton('wp-og-takumi-post-format-btn', editor);
+        wireResetButton('wp-og-takumi-post-reset-btn', editor, wpOgTakumi.defaultTemplate || '');
+        wireMediaButton('wp-og-takumi-post-media-btn', editor);
         wirePreviewButton(
-            'hannies-og-post-preview-btn',
-            'hannies-og-post-preview-img',
-            'hannies-og-post-preview',
+            'wp-og-takumi-post-preview-btn',
+            'wp-og-takumi-post-preview-img',
+            'wp-og-takumi-post-preview',
             editor,
-            hanniesOg.postId
+            wpOgTakumi.postId
         );
 
         // Toggle visibility + prefill with default when first enabled
-        const checkbox = document.getElementById('hannies-og-use-custom') as HTMLInputElement | null;
-        const wrap = document.getElementById('hannies-og-post-editor-wrap');
+        const checkbox = document.getElementById('wp-og-takumi-use-custom') as HTMLInputElement | null;
+        const wrap = document.getElementById('wp-og-takumi-post-editor-wrap');
         if (checkbox && wrap) {
             checkbox.addEventListener('change', () => {
                 wrap.style.display = checkbox.checked ? '' : 'none';
 
                 // Prefill with default template if editor is empty
-                if (checkbox.checked && editor.view.state.doc.length === 0 && hanniesOg.defaultTemplate) {
-                    setEditorContent(editor, hanniesOg.defaultTemplate);
+                if (checkbox.checked && editor.view.state.doc.length === 0 && wpOgTakumi.defaultTemplate) {
+                    setEditorContent(editor, wpOgTakumi.defaultTemplate);
                 }
             });
         }

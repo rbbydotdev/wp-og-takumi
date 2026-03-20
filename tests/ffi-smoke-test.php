@@ -2,8 +2,8 @@
 /**
  * FFI Smoke Test — runs inside Docker.
  *
- * Verifies: PHP FFI loads libhannies_og.so → renders JSON node tree → valid PNG bytes.
- * Run: docker compose exec wordpress php wp-content/plugins/hannies-og/tests/ffi-smoke-test.php
+ * Verifies: PHP FFI loads libwp_og_takumi.so → renders JSON node tree → valid PNG bytes.
+ * Run: docker compose exec wordpress php wp-content/plugins/wp-og-takumi/tests/ffi-smoke-test.php
  */
 
 $tests_run = 0;
@@ -35,8 +35,8 @@ assert_test('C header exists', file_exists($header_path));
 
 // --- Test 3: Shared library exists ---
 $lib_candidates = [
-    __DIR__ . '/../lib/libhannies_og.so',
-    '/usr/local/lib/libhannies_og.so',
+    __DIR__ . '/../lib/libwp_og_takumi.so',
+    '/usr/local/lib/libwp_og_takumi.so',
 ];
 $lib_path = null;
 foreach ($lib_candidates as $path) {
@@ -112,7 +112,7 @@ $og_json = json_encode([
                 ['type' => 'text', 'content' => 'TOUR', 'tw' => 'text-lg tracking-widest text-white mb-4'],
                 ['type' => 'text', 'content' => 'Bangkok Explorer', 'tw' => 'text-6xl font-bold text-white'],
                 ['type' => 'text', 'content' => 'Discover Bangkok', 'tw' => 'text-2xl text-white mt-6'],
-                ['type' => 'text', 'content' => "Hannie's Travels", 'tw' => 'text-lg font-semibold text-white mt-8'],
+                ['type' => 'text', 'content' => "Your Site Name", 'tw' => 'text-lg font-semibold text-white mt-8'],
             ],
         ],
     ],

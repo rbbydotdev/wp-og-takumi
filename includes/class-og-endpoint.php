@@ -2,7 +2,7 @@
 
 defined('ABSPATH') || exit;
 
-class Hannies_OG_Endpoint {
+class WP_OG_Takumi_Endpoint {
 
     public static function init(): void {
         add_action('rest_api_init', [self::class, 'registerRoutes']);
@@ -10,7 +10,7 @@ class Hannies_OG_Endpoint {
 
     public static function registerRoutes(): void {
         // Public: serve cached OG images
-        register_rest_route('hannies/v1', '/og-image/(?P<id>\d+)', [
+        register_rest_route('wp-og-takumi/v1', '/og-image/(?P<id>\d+)', [
             'methods'             => 'GET',
             'callback'            => [self::class, 'handleRequest'],
             'permission_callback' => '__return_true',
@@ -23,7 +23,7 @@ class Hannies_OG_Endpoint {
         ]);
 
         // Admin-only: live preview from template HTML
-        register_rest_route('hannies/v1', '/og-preview', [
+        register_rest_route('wp-og-takumi/v1', '/og-preview', [
             'methods'             => 'POST',
             'callback'            => [self::class, 'handlePreview'],
             'permission_callback' => fn() => current_user_can('manage_options'),
@@ -55,7 +55,7 @@ class Hannies_OG_Endpoint {
         }
 
         try {
-            $renderer = new Hannies_OG_Renderer();
+            $renderer = new WP_OG_Takumi_Renderer();
             $cache_path = $renderer->renderCached($post_id);
 
             $image_data = file_get_contents($cache_path);
@@ -87,7 +87,7 @@ class Hannies_OG_Endpoint {
         $post_id = (int)$request->get_param('post_id');
 
         try {
-            $engine = new Hannies_OG_Template_Engine();
+            $engine = new WP_OG_Takumi_Template_Engine();
 
             // Substitute variables from a real post, or use sample data
             if ($post_id > 0) {
@@ -113,7 +113,7 @@ class Hannies_OG_Endpoint {
             $nodeTree = $engine->toNodeTree($html);
             $json = json_encode($nodeTree, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE);
 
-            $renderer = new Hannies_OG_Renderer();
+            $renderer = new WP_OG_Takumi_Renderer();
             $png_bytes = $renderer->render($json);
 
             header('Content-Type: image/png');

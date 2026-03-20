@@ -42,11 +42,11 @@ test-rust-docker: ## Run Rust tests inside Docker (no local Rust needed)
 
 test-ffi: build ## FFI smoke test: PHP loads .so and renders SVG → PNG inside Docker
 	@echo "==> Running FFI smoke test in Docker..."
-	$(DOCKER_COMPOSE) exec -T wordpress php /var/www/html/wp-content/plugins/hannies-og/tests/ffi-smoke-test.php
+	$(DOCKER_COMPOSE) exec -T wordpress php /var/www/html/wp-content/plugins/wp-og-takumi/tests/ffi-smoke-test.php
 
 test-integration: build ## Integration tests: REST endpoint + OG meta tags inside Docker
 	@echo "==> Running integration tests..."
-	$(DOCKER_COMPOSE) exec -T wordpress php /var/www/html/wp-content/plugins/hannies-og/tests/integration-test.php
+	$(DOCKER_COMPOSE) exec -T wordpress php /var/www/html/wp-content/plugins/wp-og-takumi/tests/integration-test.php
 
 # ─── Utilities ───────────────────────────────────────────────────────────────
 

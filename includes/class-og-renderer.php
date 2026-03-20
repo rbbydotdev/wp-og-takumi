@@ -2,26 +2,26 @@
 
 defined('ABSPATH') || exit;
 
-class Hannies_OG_Renderer {
+class WP_OG_Takumi_Renderer {
 
     private static ?\FFI $ffi = null;
 
-    private Hannies_OG_Template_Engine $engine;
+    private WP_OG_Takumi_Template_Engine $engine;
 
-    public function __construct(?Hannies_OG_Template_Engine $engine = null) {
-        $this->engine = $engine ?? new Hannies_OG_Template_Engine();
+    public function __construct(?WP_OG_Takumi_Template_Engine $engine = null) {
+        $this->engine = $engine ?? new WP_OG_Takumi_Template_Engine();
     }
 
     private function ffi(): \FFI {
         if (self::$ffi === null) {
-            $header = file_get_contents(HANNIES_OG_PATH . 'lib/takumi_og.h');
+            $header = file_get_contents(WP_OG_TAKUMI_PATH . 'lib/takumi_og.h');
 
             $candidates = [
-                HANNIES_OG_PATH . 'lib/libhannies_og.so',
-                '/usr/local/lib/libhannies_og.so',
-                HANNIES_OG_PATH . 'lib/libhannies_og.dylib',
-                HANNIES_OG_PATH . 'lib/libhannies_og_ffi.so',
-                HANNIES_OG_PATH . 'lib/libhannies_og_ffi.dylib',
+                WP_OG_TAKUMI_PATH . 'lib/libwp_og_takumi.so',
+                '/usr/local/lib/libwp_og_takumi.so',
+                WP_OG_TAKUMI_PATH . 'lib/libwp_og_takumi.dylib',
+                WP_OG_TAKUMI_PATH . 'lib/libwp_og_takumi_ffi.so',
+                WP_OG_TAKUMI_PATH . 'lib/libwp_og_takumi_ffi.dylib',
             ];
 
             $lib = null;
@@ -34,7 +34,7 @@ class Hannies_OG_Renderer {
 
             if ($lib === null) {
                 throw new \RuntimeException(
-                    'hannies-og shared library not found. Run: docker compose build'
+                    'wp-og-takumi shared library not found. Run: docker compose build'
                 );
             }
 
@@ -54,7 +54,7 @@ class Hannies_OG_Renderer {
         $ffi = $this->ffi();
 
         $this->ensureThemeFonts();
-        $fontDir = HANNIES_OG_PATH . 'fonts';
+        $fontDir = WP_OG_TAKUMI_PATH . 'fonts';
 
         $jsonLen = strlen($json);
         $jsonPtr = \FFI::new('char[' . ($jsonLen + 1) . ']');
@@ -126,7 +126,7 @@ class Hannies_OG_Renderer {
      */
     private function ensureThemeFonts(): void {
         $fonts = $this->engine->getThemeFonts();
-        $fontsDir = HANNIES_OG_PATH . 'fonts';
+        $fontsDir = WP_OG_TAKUMI_PATH . 'fonts';
 
         if (!is_dir($fontsDir)) {
             wp_mkdir_p($fontsDir);
@@ -198,5 +198,5 @@ add_action('save_post', function (int $post_id) {
     if (wp_is_post_revision($post_id) || wp_is_post_autosave($post_id)) {
         return;
     }
-    Hannies_OG_Renderer::invalidateCache($post_id);
+    WP_OG_Takumi_Renderer::invalidateCache($post_id);
 });

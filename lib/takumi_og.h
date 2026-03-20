@@ -1,7 +1,7 @@
-/* hannies-og-ffi C header */
+/* wp-og-takumi-ffi C header */
 
-#ifndef HANNIES_OG_FFI_H
-#define HANNIES_OG_FFI_H
+#ifndef WP_OG_TAKUMI_FFI_H
+#define WP_OG_TAKUMI_FFI_H
 
 #include <stddef.h>
 #include <stdint.h>
@@ -35,4 +35,4 @@ void og_free(uint8_t *ptr, size_t len);
  */
 const char *og_last_error(void);
 
-#endif /* HANNIES_OG_FFI_H */
+#endif /* WP_OG_TAKUMI_FFI_H */

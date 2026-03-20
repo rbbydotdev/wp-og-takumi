@@ -1,6 +1,6 @@
 {
-    "name": "hannies/hannies-og",
-    "description": "Dynamic OG image generation for Hannies Travels",
+    "name": "wp-og-takumi/wp-og-takumi",
+    "description": "Dynamic OG image generation for Your Site Name",
     "type": "wordpress-plugin",
     "require-dev": {
         "phpunit/phpunit": "^10.0",

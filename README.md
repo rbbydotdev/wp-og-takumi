@@ -25,7 +25,7 @@ Rust FFI (Takumi)
     |
     v
 Cached PNG served via REST endpoint
-    GET /wp-json/hannies/v1/og-image/{post_id}
+    GET /wp-json/wp-og-takumi/v1/og-image/{post_id}
 ```
 
 On the frontend, `<meta property="og:image">` tags are injected into `wp_head` on singular pages, pointing at the REST endpoint.
@@ -86,7 +86,7 @@ Templates resolve in this order (first match wins):
 ### 1. Copy the plugin into your WordPress project
 
 ```bash
-cp -r wp-og-takumi/ /path/to/your/wp-content/plugins/hannies-og/
+cp -r wp-og-takumi/ /path/to/your/wp-content/plugins/wp-og-takumi/
 ```
 
 ### 2. Download fonts
@@ -94,7 +94,7 @@ cp -r wp-og-takumi/ /path/to/your/wp-content/plugins/hannies-og/
 The plugin needs TTF font files for text rendering. A download script is included:
 
 ```bash
-cd wp-content/plugins/hannies-og/fonts
+cd wp-content/plugins/wp-og-takumi/fonts
 sh ../scripts/download-fonts.sh
 ```
 
@@ -111,12 +111,12 @@ Copy `docker/Dockerfile` to your project root (or adapt it into your existing Do
 FROM rust:1.94-bookworm AS rust-builder
 
 WORKDIR /build
-COPY wp-content/plugins/hannies-og/takumi-og-ffi/ .
-COPY wp-content/plugins/hannies-og/fonts/ /build/../fonts/
+COPY wp-content/plugins/wp-og-takumi/takumi-og-ffi/ .
+COPY wp-content/plugins/wp-og-takumi/fonts/ /build/../fonts/
 
 RUN cargo test --release
 RUN cargo build --release \
-    && cp target/release/libhannies_og_ffi.so /build/libhannies_og.so
+    && cp target/release/libwp_og_takumi_ffi.so /build/libwp_og_takumi.so
 
 ###############################################################################
 # Stage 2: WordPress with PHP FFI
@@ -128,12 +128,12 @@ RUN apt-get update \
     && docker-php-ext-install ffi \
     && rm -rf /var/lib/apt/lists/*
 
-COPY --from=rust-builder /build/libhannies_og.so /usr/local/lib/libhannies_og.so
+COPY --from=rust-builder /build/libwp_og_takumi.so /usr/local/lib/libwp_og_takumi.so
 RUN ldconfig
 
-RUN mkdir -p /var/www/html/wp-content/plugins/hannies-og/lib
-COPY --from=rust-builder /build/libhannies_og.so \
-     /var/www/html/wp-content/plugins/hannies-og/lib/libhannies_og.so
+RUN mkdir -p /var/www/html/wp-content/plugins/wp-og-takumi/lib
+COPY --from=rust-builder /build/libwp_og_takumi.so \
+     /var/www/html/wp-content/plugins/wp-og-takumi/lib/libwp_og_takumi.so
 
 RUN echo "ffi.enable=true" > /usr/local/etc/php/conf.d/ffi.ini
 ```
@@ -145,7 +145,7 @@ services:
   wordpress:
     build: .  # instead of image: wordpress:...
     volumes:
-      - ./wp-content/plugins/hannies-og:/var/www/html/wp-content/plugins/hannies-og
+      - ./wp-content/plugins/wp-og-takumi:/var/www/html/wp-content/plugins/wp-og-takumi
 ```
 
 ### 5. Build and start
@@ -159,14 +159,14 @@ The Docker build compiles the Rust library, runs its tests, and produces a WordP
 
 ### 6. Activate the plugin
 
-Go to WP Admin > Plugins > Activate "Hannies OG Images".
+Go to WP Admin > Plugins > Activate "WP OG Takumi".
 
 ### 7. (Optional) Build the admin JS
 
 If you want the CodeMirror 6 template editor in wp-admin:
 
 ```bash
-cd wp-content/plugins/hannies-og
+cd wp-content/plugins/wp-og-takumi
 npm install
 npm run build
 ```
@@ -215,7 +215,7 @@ Drop `.ttf` files into `fonts/`. The Rust renderer loads everything in that dire
 <h1 tw="text-6xl font-bold" style="font-family: 'My Custom Font'">{{title}}</h1>
 ```
 
-Or if your theme uses the WordPress Customizer for font selection (via `get_theme_mod('hannies_font_heading')`), the plugin reads those settings automatically and downloads the Google Fonts TTFs on demand.
+Or if your theme uses the WordPress Customizer for font selection (via `get_theme_mod('og_takumi_font_heading')`), the plugin reads those settings automatically and downloads the Google Fonts TTFs on demand.
 
 ## Testing
 
@@ -281,7 +281,7 @@ const char *og_last_error(void);
 ## File structure
 
 ```
-hannies-og.php                Plugin bootstrap
+wp-og-takumi.php                Plugin bootstrap
 includes/
   class-og-template-engine.php  Template cascade, variable extraction, HTML -> JSON
   class-og-renderer.php         PHP FFI bridge to Rust, PNG caching

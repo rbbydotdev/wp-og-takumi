@@ -4,6 +4,7 @@ use std::os::raw::c_char;
 use std::ptr;
 use std::sync::Mutex;
 
+use base64::Engine;
 use serde::Deserialize;
 use takumi::{
     GlobalContext,
@@ -103,6 +104,36 @@ fn apply_tw_and_style(
     Ok(node)
 }
 
+/// Resolve an image src: if it's a local file path, read bytes and convert to data URI.
+/// If it's already a URL or data URI, pass through unchanged.
+fn resolve_image_src(src: &str) -> Result<String, String> {
+    // Already a data URI or http(s) URL — pass through
+    if src.starts_with("data:") || src.starts_with("http://") || src.starts_with("https://") {
+        return Ok(src.to_string());
+    }
+
+    // Treat as local file path
+    let path = std::path::Path::new(src);
+    if !path.exists() {
+        return Err(format!("Image file not found: {src}"));
+    }
+
+    let data = std::fs::read(path)
+        .map_err(|e| format!("Failed to read image {src}: {e}"))?;
+
+    // Detect MIME type from magic bytes
+    let mime = match &data[..4.min(data.len())] {
+        [0x89, 0x50, 0x4E, 0x47] => "image/png",
+        [0xFF, 0xD8, ..] => "image/jpeg",
+        [0x47, 0x49, 0x46, ..] => "image/gif",
+        [0x52, 0x49, 0x46, 0x46] => "image/webp",
+        _ => "application/octet-stream",
+    };
+
+    let b64 = base64::engine::general_purpose::STANDARD.encode(&data);
+    Ok(format!("data:{mime};base64,{b64}"))
+}
+
 fn build_node(def: NodeDef) -> Result<Node, String> {
     match def {
         NodeDef::Container { tw, style, children } => {
@@ -116,7 +147,8 @@ fn build_node(def: NodeDef) -> Result<Node, String> {
             apply_tw_and_style(node, tw, style)
         }
         NodeDef::Image { src, tw, style } => {
-            let node = Node::image(src.as_str());
+            let image_src = resolve_image_src(&src)?;
+            let node = Node::image(image_src.as_str());
             apply_tw_and_style(node, tw, style)
         }
     }

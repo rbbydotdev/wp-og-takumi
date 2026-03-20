@@ -160,10 +160,12 @@ class WP_OG_Takumi_Template_Engine {
 
         // Image element
         if ($tag === 'img') {
-            $result = ['type' => 'image', 'src' => $node->getAttribute('src') ?: ''];
+            $src = $node->getAttribute('src') ?: '';
+            $src = $this->resolveImageSrc($src);
+            $result = ['type' => 'image', 'src' => $src];
             $tw = $node->getAttribute('tw');
             if ($tw !== '') {
-                $result['tw'] = $tw;
+                $result['tw'] = $this->resolveTwUrls($tw);
             }
             $style = $node->getAttribute('style');
             if ($style !== '') {
@@ -189,7 +191,7 @@ class WP_OG_Takumi_Template_Engine {
             $result = ['type' => 'text', 'content' => $textContent];
             $tw = $node->getAttribute('tw');
             if ($tw !== '') {
-                $result['tw'] = $tw;
+                $result['tw'] = $this->resolveTwUrls($tw);
             }
             $style = $node->getAttribute('style');
             if ($style !== '') {
@@ -235,6 +237,55 @@ class WP_OG_Takumi_Template_Engine {
             : 'Source Sans 3';
 
         return ['heading' => $heading, 'body' => $body];
+    }
+
+    /**
+     * Resolve any URLs in a tw attribute string (e.g. bg-[url(...)]) to local paths.
+     */
+    private function resolveTwUrls(string $tw): string {
+        return preg_replace_callback('/bg-\[url\(([^)]+)\)\]/', function ($m) {
+            $resolved = $this->resolveImageSrc($m[1]);
+            return 'bg-[url(' . $resolved . ')]';
+        }, $tw);
+    }
+
+    /**
+     * Resolve an image src to a local file path.
+     * Converts WordPress upload URLs to absolute filesystem paths.
+     */
+    private function resolveImageSrc(string $src): string {
+        if ($src === '' || str_starts_with($src, '/')) {
+            return $src; // Already a local path or empty
+        }
+
+        if (!function_exists('wp_upload_dir')) {
+            return $src;
+        }
+
+        // Convert WordPress upload URL to local path
+        // e.g. http://localhost:8080/wp-content/uploads/2026/03/photo.jpg
+        //   -> /var/www/html/wp-content/uploads/2026/03/photo.jpg
+        $upload = wp_upload_dir();
+        $upload_url = $upload['baseurl']; // e.g. http://localhost:8080/wp-content/uploads
+        $upload_dir = $upload['basedir']; // e.g. /var/www/html/wp-content/uploads
+
+        if (str_starts_with($src, $upload_url)) {
+            $relative = substr($src, strlen($upload_url));
+            $local = $upload_dir . $relative;
+            if (file_exists($local)) {
+                return $local;
+            }
+        }
+
+        // Try matching just the /wp-content/uploads/ part for any host
+        if (preg_match('#/wp-content/uploads/(.+)$#', $src, $m)) {
+            $local = $upload_dir . '/' . $m[1];
+            if (file_exists($local)) {
+                return $local;
+            }
+        }
+
+        return $src;
     }
 
     private function getExcerpt(\WP_Post $post): string {

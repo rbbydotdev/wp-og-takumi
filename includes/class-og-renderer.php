@@ -57,14 +57,14 @@ class WP_OG_Takumi_Renderer {
         $fontDir = WP_OG_TAKUMI_PATH . 'fonts';
 
         $jsonLen = strlen($json);
-        $jsonPtr = \FFI::new('char[' . ($jsonLen + 1) . ']');
+        $jsonPtr = $ffi->new('char[' . ($jsonLen + 1) . ']');
         \FFI::memcpy($jsonPtr, $json, $jsonLen);
 
         $fontDirLen = strlen($fontDir);
-        $fontDirPtr = \FFI::new('char[' . ($fontDirLen + 1) . ']');
+        $fontDirPtr = $ffi->new('char[' . ($fontDirLen + 1) . ']');
         \FFI::memcpy($fontDirPtr, $fontDir, $fontDirLen);
 
-        $outLen = \FFI::new('size_t');
+        $outLen = $ffi->new('size_t');
         $outPtr = $ffi->og_render($jsonPtr, $jsonLen, $fontDirPtr, $fontDirLen, \FFI::addr($outLen));
 
         if ($outPtr === null) {
@@ -121,6 +121,19 @@ class WP_OG_Takumi_Renderer {
 
         if (file_exists($cache_path)) {
             unlink($cache_path);
+        }
+    }
+
+    /**
+     * Invalidate ALL cached OG images (e.g. when template settings or fonts change).
+     */
+    public static function invalidateAllCaches(): void {
+        $cache_dir = wp_upload_dir()['basedir'] . '/og-images';
+        if (!is_dir($cache_dir)) {
+            return;
+        }
+        foreach (glob($cache_dir . '/*.png') as $file) {
+            unlink($file);
         }
     }
 
@@ -203,3 +216,19 @@ add_action('save_post', function (int $post_id) {
     }
     WP_OG_Takumi_Renderer::invalidateCache($post_id);
 });
+
+// Clear ALL caches when OG template settings change
+$og_option_keys = [
+    'wp_og_takumi_default_template',
+    'wp_og_takumi_template_post',
+    'wp_og_takumi_template_page',
+    'wp_og_takumi_template_tour',
+    'wp_og_takumi_template_destination',
+    'wp_og_takumi_template_guide',
+];
+foreach ($og_option_keys as $key) {
+    add_action("update_option_{$key}", [WP_OG_Takumi_Renderer::class, 'invalidateAllCaches']);
+}
+
+// Clear ALL caches when theme fonts change (Customizer save)
+add_action('update_option_theme_mods_hannies', [WP_OG_Takumi_Renderer::class, 'invalidateAllCaches']);
